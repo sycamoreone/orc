@@ -20,6 +20,34 @@ func (r Reply) String() string {
 	return s
 }
 
+// Status codes of replies from the onion router.
+const (
+	StatusOK                   = 250
+	StatusOperationUnnecessary = 251
+
+	StatusResourceExhausted = 451
+
+	StatusProtocolSyntaxError = 500
+
+	StatusUnrecognizedCommand    = 510
+	StatusUnimplementedCommand   = 511
+	StatusArgumentSyntaxError    = 512
+	StatusUnrecognizedArgument   = 513
+	StatusAuthenticationRequired = 514
+	StatusBadAuthentication      = 515
+
+	StatusUnspecifiedError   = 550
+	StatusInternalError      = 551
+	StatusUnrecognizedEntity = 552
+
+	StatusInvalidConfigurationValue = 553
+	StatusInvalidDescriptor         = 554
+
+	StatusUnmanagedEntity = 555
+
+	StatusAsyncEventNotification = 650
+)
+
 // IsAsync returns true if r is an asynchronous reply and false otherwise.
 func (r Reply) IsAsync() bool {
 	return r.Status == 650

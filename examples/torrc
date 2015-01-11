@@ -1,4 +1,5 @@
 SocksPort 9055
 ControlPort 9051
+# password = "supersecretpasswd"
 HashedControlPassword 16:97E10A1BE81C795E600BBD9C4A912BF853FC213F867A6C07869108EFBB
 #CookieAuthentication 1

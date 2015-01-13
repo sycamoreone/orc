@@ -114,22 +114,20 @@ func (c Conn) SetEvents(keys []string) error {
 	return err
 }
 
-type Signal string
-
 const (
-	SignalReload        Signal = "RELOAD"        // Reload config items.
-	SignalShutdown      Signal = "SHUTDOWN"      // Controlled shutdown.
-	SignalDump          Signal = "DUMP"          // Dump log information about open connections and circuits.
-	SignalDebug         Signal = "DEBUG"         // Switch all open logs to loglevel debug.
-	SignalHalt          Signal = "HALT"          // Immediate shutdown: clean up and exit now.
-	SignalClearDNSCache Signal = "CLEARDNSCACHE" // Forget the client-side cached IPs for all hostnames.
-	SignalNewNym        Signal = "NEWNYM"        // Switch to clean circuits, so new application requests don't share any circuits with old ones.
-	SignalHeartbeat     Signal = "HEARTBEAT"     // Dump an unscheduled Heartbeat message to log.
+	SignalReload        = "RELOAD"        // Reload config items.
+	SignalShutdown      = "SHUTDOWN"      // Controlled shutdown.
+	SignalDump          = "DUMP"          // Dump log information about open connections and circuits.
+	SignalDebug         = "DEBUG"         // Switch all open logs to loglevel debug.
+	SignalHalt          = "HALT"          // Immediate shutdown: clean up and exit now.
+	SignalClearDNSCache = "CLEARDNSCACHE" // Forget the client-side cached IPs for all hostnames.
+	SignalNewNym        = "NEWNYM"        // Switch to clean circuits, so new application requests don't share any circuits with old ones.
+	SignalHeartbeat     = "HEARTBEAT"     // Dump an unscheduled Heartbeat message to log.
 )
 
 // Signal sends a SIGNAL command to the server.
-func (c Conn) Signal(s Signal) error {
-	cmd := Cmd{Keyword: "SIGNAL", Arguments: []string{string(s)}}
+func (c Conn) Signal(s string) error {
+	cmd := Cmd{Keyword: "SIGNAL", Arguments: []string{s}}
 	err := c.Send(cmd)
 	return err
 }

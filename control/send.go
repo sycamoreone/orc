@@ -1,5 +1,5 @@
 // Package control implements part of the 'Tor control protocol (Version 1)'.
-// See https://gitweb.torproject.org/torspec.git/blob/HEAD:/control-spec.txt
+// See https://gitweb.torproject.org/torspec.git/tree/control-spec.txt.
 package control
 
 import (

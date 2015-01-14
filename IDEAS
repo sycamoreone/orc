@@ -1,0 +1,18 @@
+Ideas for things to add/change.
+--------------------------------
+
+- All the methods implementing special types of commands (GetInfo, GetConf,
+  SetInfo, ...) should receive the onion routers reply and return useful
+  information.
+
+- Status codes like "551 Internal error" shouldn't be just integers but
+  implement the error interface.
+
+- It should be possible to handle asynchronous replies using a framework
+  similar to the Handler(Func) system in net/http. It would be best if
+  installing a Handler for an event, could automatically send a SETEVENTS
+  command for this type of event.
+
+- The Conn.SyncReplies channel should probably be removed: for synchronous
+  replies there is no need to use channels for synchronization and users can
+  easily implement this themselves.

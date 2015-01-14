@@ -198,8 +198,6 @@ func (c Conn) ReceiveToChan() error {
 	return nil
 }
 
-/* TODO: Not sure we want to have these.
-
 // ReceiveSync reads replies from the Tor server. It returns the first
 // synchronous reply; replies read before that are send to the connections
 // AsyncReplies channel. ReceiveSync blocks until the replies are
@@ -239,4 +237,3 @@ func (c Conn) ReceiveAsync() (*Reply, error) {
 	c.AsyncReplies <- r
 	return r, nil
 }
-*/

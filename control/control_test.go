@@ -145,4 +145,3 @@ uptime 1130120
 		t.Fatalf("Got:\n%s\nExpected:\n%s", actualcmds, client)
 	}
 }
-

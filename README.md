@@ -19,3 +19,19 @@ to run an example:
     > /usr/sbin/tor -f examples/torrc
     > go run examples/resolve/main.go
 
+TODO
+-----
+
+I started writing orc because I wanted to play with the control protocol.
+and I am planing to add to the library according to my own interests.
+Still, if anybody is interested in a particular feature, please tell me!
+I would be more than happy if this thing is actually useful to somebody.
+
+Things that I would like to add include
+
+- [ ] handler functions for asynchronous events
+- [ ] a package to launch a slave Tor process,
+- [ ] a nice way to provide and save configurations
+- [ ] launching and configuration of hidden services,
+- [ ] a few of the example use cases from the [Stem](https://stem.torproject.org/index.html) and [txtorcon](https://txtorcon.readthedocs.org/en/latest/) documentation,
+- [ ] and, of course, a small and fun CLI client.

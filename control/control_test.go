@@ -80,7 +80,7 @@ func TestSendReceive(t *testing.T) {
 	c.Send(cmd)
 	reply, err := c.Receive()
 	if err != nil {
-		t.Fatal("Receive failed: %v", err)
+		t.Fatalf("Receive failed: %v", err)
 	}
 	expected := Reply{Status: 510, Text: "Unrecognized command \"XXX\""}
 	if !equal(expected, *reply) {

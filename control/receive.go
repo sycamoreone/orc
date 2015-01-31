@@ -3,6 +3,8 @@ package control
 import (
 	"errors"
 	"strconv"
+	"strings"
+	"log"
 )
 
 // Reply represents a reply send from the server to the client.
@@ -236,4 +238,67 @@ func (c Conn) ReceiveAsync() (*Reply, error) {
 	}
 	c.AsyncReplies <- r
 	return r, nil
+}
+
+// A Handler can be registered to handle asynchronous replies send
+// by an Tor router. It is customary for Handler
+// to communicate back using channels.
+type Handler func(r *Reply)
+
+// Demux is a simple demultiplexer for asynchronous replies.
+// It matches the type of a reply against a list of registered events
+// and calls the corresponding Handler function.
+type Demux struct {
+	conn *Conn
+	handler map[string]Handler
+}
+
+// NewMux allocates and returns a new Demux.
+func NewDemux(c *Conn) *Demux {
+	return &Demux{ conn: c, handler: make(map[string]Handler) }
+}
+
+// Handle registers f to handle replies of type event.
+// The different events are listed in section 4.1 of the control-spec.
+func (m *Demux) Handle(event string, f Handler) Handler {
+	if event == "" {
+		panic("control: invalid event " + event)
+	}
+	if f == nil {
+		panic("control: nil Handler")
+	}
+	old, ok := m.handler[event]
+	m.handler[event] = f
+	if ok {
+		return old
+	}
+	return nil
+}
+
+// Serve reads replies from the AsyncReplies channel of m.conn and
+// calls the corresponding Handler functions.
+func (m *Demux) Serve() {
+	// start a go routine that only 
+	for {
+		r := <- m.conn.AsyncReplies
+		event := r.Text[:strings.IndexByte(r.Text, ' ')]
+		f, ok := m.handler[event]
+		if !ok {
+			continue
+			// TODO: Would be nice to do some error reporting here; maybe using some errChan channel.
+		}
+		go f(r)
+	}
+}
+
+// ReceiveAndServe launches a goroutine that reads replies from the Tor router
+// and then calls Serve().
+func (m *Demux) ReceiveAndServe() {
+	go func() {
+		for {
+			log.Print("here")
+			m.conn.ReceiveToChan()
+		}
+	}()
+	m.Serve()	
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/sycamoreone/orc/control"
 	"log"
 	"strings"
-	"time"
+	"os"
 )
 
 func main() {
@@ -18,36 +18,22 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	errChan := make(chan error)
-
-	// Call ReceiveToChan in a loop.
-	go func() {
-		for {
-			err := c.ReceiveToChan()
-			if err != nil {
-				errChan <- err
-			}
-		}
-	}()
-
 	c.SetEvents([]string{"ADDRMAP"}) // Request asyncronous ADDRMAP events,
 	c.Resolve("torproject.org")      // and resolve torproject.org.
 
-	timer := time.Tick(10 * time.Second)
-	for {
-		select {
-		case <-timer:
-			return
-		case r := <-c.AsyncReplies:
-			ip := strings.SplitN(r.Text, " ", 4)[2]
-			fmt.Printf("torproject.org resolved to IP  address %s\n", ip)
-			return
-		case r := <-c.SyncReplies:
-			if r.Status != 250 || r.Text != "OK" {
-				log.Print("unexpected sync reply: ", r)
-			}
-		case err := <-errChan:
-			log.Print(err)
+	c.Handle("ADDRMAP", func (r *control.Reply) {
+		ip := strings.SplitN(r.Text, " ", 4)[2]
+		fmt.Printf("torproject.org resolved to IP  address %s\n", ip)
+		os.Exit(0)
+	})
+
+	// TODO: This is ugly. All methods that send commands should make sure
+	// to read the synchromous replies. Then this would be necessary.
+	go func () {
+		for {
+			_ = <- c.SyncReplies
 		}
-	}
+	}()
+
+	c.ReceiveAndServe()
 }

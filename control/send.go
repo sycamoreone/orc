@@ -15,6 +15,7 @@ type Conn struct {
 
 	AsyncReplies chan *Reply
 	SyncReplies  chan *Reply
+	*Demux
 }
 
 // Client returns a new Tor Control Protocol connection
@@ -25,6 +26,7 @@ func Client(conn net.Conn) *Conn {
 	c.text = text
 	c.AsyncReplies = make(chan *Reply)
 	c.SyncReplies = make(chan *Reply)
+	c.Demux = NewDemux(c)
 	return c
 }
 

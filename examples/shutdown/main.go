@@ -6,26 +6,21 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Ldate)
 	c, err := control.Dial(":9051")
 	if err != nil {
-		log.Print(err)
+		log.Print("shutdown: ", err)
 	}
 	err = c.Auth("supersecretpasswd")
 	if err != nil {
-		log.Print(err)
+		log.Print("shutdown: ", err)
 		return
 	}
-	log.Print("connected; shuting down again")
+	log.Print("shutdown: connected; shutting down the Tor router")
 
 	err = c.Signal(control.SignalShutdown)
 	if err != nil {
-		log.Print(err)
+		log.Print("shutdown: ", err)
 		return
 	}
-	reply, err := c.Receive()
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	log.Print(reply)
 }

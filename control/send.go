@@ -69,7 +69,7 @@ func (c Conn) Send(cmd Cmd) (*Reply, error) {
 		}
 		w.Close()
 	}
-	reply, err := c.Receive()
+	reply, err := c.ReceiveSync()
 	return reply, nil
 }
 
@@ -84,10 +84,10 @@ func (c Conn) Auth(passwd string) (err error) {
 	cmd := Cmd{Keyword: "AUTHENTICATE", Arguments: []string{dquote(passwd)}}
 	reply, err := c.Send(cmd)
 	if err != nil {
-		if reply.Status != 250 || reply.Text != "OK" {
-			return errors.New("control: authentication error: " + reply.Text)
-		}
 		return err
+	}
+	if reply.Status != 250 || reply.Text != "OK" {
+		return errors.New("control: authentication error: " + reply.Text)
 	}
 	return nil
 }

@@ -64,7 +64,7 @@ func (c Conn) Send(cmd Cmd) (*Reply, error) {
 		}
 		w := c.text.DotWriter()
 		_, err = w.Write([]byte(cmd.Data))
-		if err != nil {	
+		if err != nil {
 			return nil, err
 		}
 		w.Close()

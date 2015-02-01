@@ -222,13 +222,13 @@ type Handler func(r *Reply)
 // It matches the type of a reply against a list of registered events
 // and calls the corresponding Handler function.
 type Demux struct {
-	conn *Conn
+	conn    *Conn
 	handler map[string]Handler
 }
 
 // NewMux allocates and returns a new Demux.
 func NewDemux(c *Conn) *Demux {
-	return &Demux{ conn: c, handler: make(map[string]Handler) }
+	return &Demux{conn: c, handler: make(map[string]Handler)}
 }
 
 // Handle registers f to handle replies of type event.
@@ -252,7 +252,7 @@ func (m *Demux) Handle(event string, f Handler) Handler {
 // corresponding Handler functions in new goroutines.
 func (m *Demux) Serve() {
 	for {
-		r := <- m.conn.Replies
+		r := <-m.conn.Replies
 		event := r.Text[:strings.IndexByte(r.Text, ' ')]
 		f, ok := m.handler[event]
 		if !ok {

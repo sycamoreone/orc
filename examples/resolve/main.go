@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/sycamoreone/orc/control"
 	"log"
-	"strings"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	c.SetEvents([]string{"ADDRMAP"}) // Request asyncronous ADDRMAP events,
 	c.Resolve("torproject.org")      // and resolve torproject.org.
 
-	c.Handle("ADDRMAP", func (r *control.Reply) {
+	c.Handle("ADDRMAP", func(r *control.Reply) {
 		ip := strings.SplitN(r.Text, " ", 4)[2]
 		fmt.Printf("torproject.org resolved to IP  address %s\n", ip)
 		os.Exit(0)

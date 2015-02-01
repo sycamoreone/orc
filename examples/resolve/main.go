@@ -27,13 +27,6 @@ func main() {
 		os.Exit(0)
 	})
 
-	// TODO: This is ugly. All methods that send commands should make sure
-	// to read the synchromous replies. Then this would be necessary.
-	go func () {
-		for {
-			_ = <- c.SyncReplies
-		}
-	}()
-
-	c.ReceiveAndServe()
+	go c.ReceiveToChan()
+	c.Serve()
 }

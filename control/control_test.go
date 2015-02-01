@@ -77,8 +77,7 @@ func TestSendReceive(t *testing.T) {
 	}
 
 	cmd := Cmd{Keyword: "XXX"}
-	c.Send(cmd)
-	reply, err := c.Receive()
+	reply, err := c.Send(cmd)
 	if err != nil {
 		t.Fatalf("Receive failed: %v", err)
 	}
@@ -91,8 +90,7 @@ func TestSendReceive(t *testing.T) {
 		Keyword:   "MAPADDRESS",
 		Arguments: []string{"0.0.0.0=torproject.org", "1.2.3.4=tor.freehaven.net"},
 	}
-	c.Send(cmd)
-	reply, err = c.Receive()
+	reply, err = c.Send(cmd)
 	if err != nil {
 		t.Fatalf("Receive failed: %v", err)
 	}
@@ -109,8 +107,7 @@ func TestSendReceive(t *testing.T) {
 		Keyword:   "GETINFO",
 		Arguments: []string{"version desc/name/moria1"},
 	}
-	c.Send(cmd)
-	reply, err = c.Receive()
+	reply, err = c.Send(cmd)
 	if err != nil {
 		t.Fatalf("Receive failed: %v", err)
 	}

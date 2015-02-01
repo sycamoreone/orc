@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-	"log"
 )
 
 // Reply represents a reply send from the server to the client.
@@ -184,60 +183,34 @@ func (c Conn) Receive() (*Reply, error) {
 	return reply, nil
 }
 
-// ReceiveToChan reads a single reply from the Tor server and sends
-// it to the connections AsyncReplies or SyncReplies channel.
-// ReceiveToChan blocks until the reply is read from the channel.
-func (c Conn) ReceiveToChan() error {
-	r, err := c.Receive()
-	if err != nil {
-		return err
-	}
-	if r.IsAsync() {
-		c.AsyncReplies <- r
-		return nil
-	}
-	c.SyncReplies <- r
-	return nil
-}
-
-// ReceiveSync reads replies from the Tor server. It returns the first
-// synchronous reply; replies read before that are send to the connections
-// AsyncReplies channel. ReceiveSync blocks until the replies are
-// read from the channel.
+// ReceiveSync reads replies from the Tor server. It returns the first synchronous reply;
+// replies read before that are send to the connections Replies channel.
+// ReceiveSync blocks until the replies are read from that channel.
 func (c Conn) ReceiveSync() (*Reply, error) {
 	r, err := c.Receive()
 	if err != nil {
 		return r, err
 	}
 	for r.IsAsync() {
-		c.AsyncReplies <- r
+		c.Replies <- r
 		r, err = c.Receive()
 		if err != nil {
 			return r, err
 		}
 	}
-	c.SyncReplies <- r
 	return r, nil
 }
 
-// ReceiveAsync reads replies from the Tor server. It returns the first
-// asynchronous reply; replies read before that are send to the connections
-// SyncReplies channel. ReceiveAsync blocks until the replies are
-// read from the channel.
-func (c Conn) ReceiveAsync() (*Reply, error) {
+// ReceiveToChan reads a single reply from the Tor server and sends
+// it to the connections Replies channel. ReceiveToChan blocks until the
+// reply is read from the channel.
+func (c Conn) ReceiveToChan() error {
 	r, err := c.Receive()
 	if err != nil {
-		return r, err
+		return err
 	}
-	for r.IsSync() {
-		c.SyncReplies <- r
-		r, err = c.Receive()
-		if err != nil {
-			return r, err
-		}
-	}
-	c.AsyncReplies <- r
-	return r, nil
+	c.Replies <- r
+	return nil
 }
 
 // A Handler can be registered to handle asynchronous replies send
@@ -275,12 +248,11 @@ func (m *Demux) Handle(event string, f Handler) Handler {
 	return nil
 }
 
-// Serve reads replies from the AsyncReplies channel of m.conn and
-// calls the corresponding Handler functions.
+// Serve reads replies from the Replies channel of m's Conn and launches the
+// corresponding Handler functions in new goroutines.
 func (m *Demux) Serve() {
-	// start a go routine that only 
 	for {
-		r := <- m.conn.AsyncReplies
+		r := <- m.conn.Replies
 		event := r.Text[:strings.IndexByte(r.Text, ' ')]
 		f, ok := m.handler[event]
 		if !ok {
@@ -289,16 +261,4 @@ func (m *Demux) Serve() {
 		}
 		go f(r)
 	}
-}
-
-// ReceiveAndServe launches a goroutine that reads replies from the Tor router
-// and then calls Serve().
-func (m *Demux) ReceiveAndServe() {
-	go func() {
-		for {
-			log.Print("here")
-			m.conn.ReceiveToChan()
-		}
-	}()
-	m.Serve()	
 }

@@ -13,8 +13,7 @@ type Conn struct {
 	// text is the textproto.Conn used by the Conn.
 	text *textproto.Conn
 
-	AsyncReplies chan *Reply
-	SyncReplies  chan *Reply
+	Replies chan *Reply
 	*Demux
 }
 
@@ -24,8 +23,7 @@ func Client(conn net.Conn) *Conn {
 	c := new(Conn)
 	text := textproto.NewConn(conn)
 	c.text = text
-	c.AsyncReplies = make(chan *Reply)
-	c.SyncReplies = make(chan *Reply)
+	c.Replies = make(chan *Reply)
 	c.Demux = NewDemux(c)
 	return c
 }
@@ -48,9 +46,9 @@ type Cmd struct {
 }
 
 // Send sends a command to the Tor server.
-func (c Conn) Send(cmd Cmd) (err error) {
+func (c Conn) Send(cmd Cmd) (*Reply, error) {
 	if len(cmd.Keyword) == 0 {
-		return errors.New("empty Keyword in Cmd")
+		return nil, errors.New("empty Keyword in Cmd")
 	}
 	line := cmd.Keyword
 	for _, arg := range cmd.Arguments {
@@ -58,18 +56,21 @@ func (c Conn) Send(cmd Cmd) (err error) {
 			line = line + " " + arg
 		}
 	}
-	_, err = c.text.Cmd("%s", line)
+	_, err := c.text.Cmd("%s", line)
 
-	if len(cmd.Data) == 0 {
-		return err
+	if len(cmd.Data) > 0 {
+		if cmd.Keyword[0] != '+' {
+			return nil, errors.New("protocol error: CmdData present, but Keyword no leading '+;")
+		}
+		w := c.text.DotWriter()
+		_, err = w.Write([]byte(cmd.Data))
+		if err != nil {	
+			return nil, err
+		}
+		w.Close()
 	}
-	if cmd.Keyword[0] != '+' {
-		return errors.New("protocol error: CmdData present, but Keyword no leading '+;")
-	}
-	w := c.text.DotWriter()
-	defer w.Close()
-	_, err = w.Write([]byte(cmd.Data))
-	return err
+	reply, err := c.Receive()
+	return reply, nil
 }
 
 // dquote double quotes the string s.
@@ -81,38 +82,43 @@ func dquote(s string) string {
 // Pass an empty string to authenticate without password.
 func (c Conn) Auth(passwd string) (err error) {
 	cmd := Cmd{Keyword: "AUTHENTICATE", Arguments: []string{dquote(passwd)}}
-	err = c.Send(cmd)
+	reply, err := c.Send(cmd)
 	if err != nil {
+		if reply.Status != 250 || reply.Text != "OK" {
+			return errors.New("control: authentication error: " + reply.Text)
+		}
 		return err
-	}
-	reply, err := c.Receive()
-	if err != nil {
-		return err
-	}
-	if reply.Status != 250 || reply.Text != "OK" {
-		return errors.New("authentication error: " + reply.Text)
 	}
 	return nil
 }
 
 // GetInfo sends a GETINFO command to the server.
-func (c Conn) GetInfo(key string) error {
+func (c Conn) GetInfo(key string) (*Reply, error) {
 	cmd := Cmd{Keyword: "GETINFO", Arguments: []string{key}}
-	err := c.Send(cmd)
-	return err
+	reply, err := c.Send(cmd)
+	if reply.Status != 250 || reply.Text != "OK" {
+		return reply, errors.New("control: expected \"250 OK\" reply.")
+	}
+	return reply, err
 }
 
 // Resolve launches a remote hostname lookup for addr.
 func (c Conn) Resolve(addr string) error {
 	cmd := Cmd{Keyword: "RESOLVE", Arguments: []string{addr}}
-	err := c.Send(cmd)
+	reply, err := c.Send(cmd)
+	if reply.Status != 250 || reply.Text != "OK" {
+		return errors.New("control: expected \"250 OK\" reply.")
+	}
 	return err
 }
 
 // SetEvents sends a SETEVENTS command to the server.
 func (c Conn) SetEvents(keys []string) error {
 	cmd := Cmd{Keyword: "SETEVENTS", Arguments: keys}
-	err := c.Send(cmd)
+	reply, err := c.Send(cmd)
+	if reply.Status != 250 || reply.Text != "OK" {
+		return errors.New("control: expected \"250 OK\" reply.")
+	}
 	return err
 }
 
@@ -130,6 +136,6 @@ const (
 // Signal sends a SIGNAL command to the server.
 func (c Conn) Signal(s string) error {
 	cmd := Cmd{Keyword: "SIGNAL", Arguments: []string{s}}
-	err := c.Send(cmd)
+	_, err := c.Send(cmd)
 	return err
 }

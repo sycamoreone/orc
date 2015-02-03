@@ -9,7 +9,7 @@ To do anything with this library you will have to read the
 [control protocol specification](https://gitweb.torproject.org/torspec.git/tree/control-spec.txt)
 beforehand.
 
-Examples 
+Examples
 ---------
 
 The examples assume that a Tor router with ControlPort 9051 open and protected
@@ -27,11 +27,20 @@ and I am planing to add to the library according to my own interests.
 Still, if anybody is interested in a particular feature, please tell me!
 I would be more than happy if this thing is actually useful to somebody.
 
-Things that I would like to add include
+Things that I would like to add include:
 
-- [ ] handler functions for asynchronous events
-- [ ] a package to launch a slave Tor process,
-- [ ] a nice way to provide and save configurations
-- [ ] launching and configuration of hidden services,
-- [ ] a few of the example use cases from the [Stem](https://stem.torproject.org/index.html) and [txtorcon](https://txtorcon.readthedocs.org/en/latest/) documentation,
-- [ ] and, of course, a small and fun CLI client.
+- [x] Add Handler functions for asynchronous events.
+- [ ] Instead of sending a SETEVENTS command and installing a custom 
+  Handler in two steps, there should be a catalog of ready-made functions
+  that make sending the SETEVENTS command and installing a Handler a
+  single call.
+- [ ] Add a package to launch a slave Tor process.
+- [ ] Add a nice way to provide and save configurations.
+- [ ] Add helpers for launching and configuration of hidden services.
+- [ ] Status codes like "551 Internal error" shouldn't be just integers
+  but implement the error interface.
+- [ ] Try to implement a few of the example use cases from the
+  [Stem](https://stem.torproject.org/index.html) and
+  [txtorcon](https://txtorcon.readthedocs.org/en/latest/) documentation,
+  to see what functionality is missing.
+- [ ] And, of course, we need to have yet another small and fun CLI client.

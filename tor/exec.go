@@ -1,4 +1,4 @@
-// Package process supplies helper functions to start a tor binary as a slave process.
+// Package tor supplies helper functions to start a tor binary as a slave process.
 package tor
 
 import (

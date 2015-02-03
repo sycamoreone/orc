@@ -31,9 +31,8 @@ Things that I would like to add include:
 
 - [x] Add Handler functions for asynchronous events.
 - [ ] Instead of sending a SETEVENTS command and installing a custom 
-  Handler in two steps, there should be a catalog of ready-made functions
-  that make sending the SETEVENTS command and installing a Handler a
-  single call.
+  Handler in two steps, there should be a catalog of functions that make sending
+  the SETEVENTS command and installing a ready-made Handler a single call.
 - [ ] Add a package to launch a slave Tor process.
 - [ ] Add a nice way to provide and save configurations.
 - [ ] Add helpers for launching and configuration of hidden services.

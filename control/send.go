@@ -136,6 +136,9 @@ const (
 // Signal sends a SIGNAL command to the server.
 func (c Conn) Signal(s string) error {
 	cmd := Cmd{Keyword: "SIGNAL", Arguments: []string{s}}
-	_, err := c.Send(cmd)
+	reply, err := c.Send(cmd)
+	if reply.Status != 250 || reply.Text != "OK" {
+		return errors.New("control: expected \"250 OK\" reply, but got " + reply.Text)
+	}
 	return err
 }

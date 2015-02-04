@@ -2,40 +2,73 @@
 package tor
 
 import (
+	"time"
 	"os/exec"
-	//	"bufio"
-	//	"regexp"
+	"io"
+	"bufio"
+	"strings"
+	"errors"
 )
 
 // Cmd represents an tor executable to be run as a slave process.
 type Cmd struct {
 	Config *Config
-	Cmd    *exec.Cmd // TODO: We probably shouldn't expose the exec.Cmd
+	cmd    *exec.Cmd
+	stdout io.ReadCloser
 }
 
 // NewCmd returns a Cmd to run a tor process using the configuration values in config.
-// The argument path is the path to the tor program to be run. If path is the empty string,
-// $PATH is used to search for a tor executable.
-func NewCmd(path string, config *Config) (*Cmd, error) {
-	if path == "" {
+func NewCmd(config *Config) (*Cmd, error) {
+	if config.Path == "" {
 		file, err := exec.LookPath("tor")
 		if err != nil {
 			return nil, err
 		}
-		path = file
+		config.Path = file
 	}
-	return &Cmd{Config: config, Cmd: exec.Command(path, config.ToCmdLineFormat()...)}, nil
+
+	cmd := exec.Command(config.Path, config.ToCmdLineFormat()...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	return &Cmd{
+		Config: config,
+		cmd: cmd,
+		stdout: stdout,
+	}, nil
 }
 
 func (c *Cmd) Start() error {
-	err := c.Cmd.Start()
+	deadline := time.Now().Add(c.Config.Timeout)
+	err := c.cmd.Start()
 	if err != nil {
 		return err
 	}
-	// TODO: read output until one gets a "Bootstrapped 100%: Done" notice.
+
+	// Read output until one gets a "Bootstrapped 100%: Done" notice.
+	buf := bufio.NewReader(c.stdout)
+	line, err := buf.ReadString('\n')
+	for err == nil {
+		if time.Now().After(deadline) {
+			_ = c.cmd.Process.Kill()
+			return errors.New("orc/tor: process killed because of timeout")
+		}
+		if strings.Contains(line, "Bootstrapped 100%: Done") {
+			break
+		}
+		line, err = buf.ReadString('\n')
+	}
 	return nil
 }
 
 func (c *Cmd) Wait() error {
-	return c.Cmd.Wait()
+	return c.cmd.Wait()
+}
+
+func (c *Cmd) KillUnlessExited() {
+	if c.cmd.ProcessState.Exited() {
+		return
+	}
+	c.cmd.Process.Kill()
 }

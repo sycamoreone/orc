@@ -3,6 +3,7 @@
 package control
 
 import (
+	"encoding/hex"
 	"errors"
 	"net"
 	"net/textproto"
@@ -82,6 +83,16 @@ func dquote(s string) string {
 // Pass an empty string to authenticate without password.
 func (c Conn) Auth(passwd string) (err error) {
 	cmd := Cmd{Keyword: "AUTHENTICATE", Arguments: []string{dquote(passwd)}}
+	return c.auth(cmd)
+}
+
+// AuthCookie authenticates a connection using the control auth cookie.
+func (c Conn) AuthCookie(cookie []byte) (err error) {
+	cmd := Cmd{Keyword: "AUTHENTICATE", Arguments: []string{hex.EncodeToString(cookie)}}
+	return c.auth(cmd)
+}
+
+func (c Conn) auth(cmd Cmd) error {
 	reply, err := c.Send(cmd)
 	if err != nil {
 		return err
